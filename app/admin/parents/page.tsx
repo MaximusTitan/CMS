@@ -1,12 +1,73 @@
 "use client";
 
 import React from "react";
+import { createClient } from "@/utils/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface User {
+  id: string;
+  role: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  full_name: string | null;
+}
 
 export default function AdminParents() {
+  const supabase = createClient();
+  const [users, setUsers] = React.useState<User[]>([]);
+
+  React.useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("role", "parent");
+      if (error) {
+        console.error("error", error);
+      } else {
+        setUsers(data || []);
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
-    <div>
-      <h1>Welcome to the App!</h1>
-      <p>This is the admin page for Parents.</p>
+    <div className="container mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-5">Parents</h1>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableCaption>List of all Parents</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Full Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Created At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.full_name || "N/A"}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.phone || "N/A"}</TableCell>
+                <TableCell>
+                  {new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
